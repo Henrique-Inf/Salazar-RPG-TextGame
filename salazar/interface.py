@@ -5,6 +5,7 @@ instalada, ou se o jogo não estiver rodando num terminal de verdade, os menus
 viram listas numeradas, e o jogo continua funcionando.
 """
 
+import os
 import sys
 
 try:
@@ -41,6 +42,12 @@ def _resposta(valor):
     if valor is None:
         raise KeyboardInterrupt
     return valor
+
+
+def limpar():
+    """Limpa a tela (só num terminal de verdade, para não atrapalhar redirecionamentos)."""
+    if sys.stdout.isatty():
+        os.system("cls" if os.name == "nt" else "clear")
 
 
 def titulo(texto):

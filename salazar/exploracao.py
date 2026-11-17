@@ -1,11 +1,15 @@
-"""Exploração: o jogador escolhe ações num menu para andar e examinar as coisas."""
+"""Exploração: o jogador escolhe ações num menu para andar e examinar as coisas.
+
+A tela é redesenhada a cada passo: cabeçalho com o estado do herói, a descrição
+da sala, o resultado da última ação (se houve) e o menu.
+"""
 
 from .mundo import SALAS
-from .interface import titulo, escolher
+from .interface import limpar, titulo, escolher
 
+LARGURA = 46
 VOLTAR = "Voltar"
 EXAMINAR = "Examinar…"
-OLHAR = "Olhar ao redor"
 MAPA = "Mapa"
 FICHA = "Ficha do personagem"
 SALVAR = "Salvar jogo"
@@ -18,46 +22,56 @@ def rotulo_direcao(direcao):
     return f"Ir para o {direcao}"
 
 
-def mostrar_sala(heroi, completa=True):
+def tela(heroi, mensagem=None):
+    """Limpa a tela e desenha o cabeçalho, a sala e a mensagem da última ação."""
+    limpar()
     sala = SALAS[heroi.local]
+    print(f"{heroi.nome} · {heroi.raca} {heroi.classe} · PV {heroi.pv_atual}/{heroi.pv_maximo}")
+    print("─" * LARGURA)
+    print(f"{sala['nome']}  ({sala['andar']})")
     print()
-    print(f"== {sala['nome']} ==  ({sala['andar']})")
-    if completa:
-        print(sala["descricao"])
+    print(sala["descricao"])
+    if mensagem:
+        print()
+        print("─" * LARGURA)
+        print(mensagem)
+    print()
 
 
-def mostrar_mapa(heroi):
-    print("\nLugares que você já conhece:")
+def texto_mapa(heroi):
+    linhas = ["Lugares que você já conhece:"]
     for andar in ("Subterrâneo", "Térreo"):
         salas = [s for s in heroi.visitados if SALAS[s]["andar"] == andar]
         if not salas:
             continue
-        print(f"  {andar}:")
+        linhas.append(f"  {andar}:")
         for s in salas:
             marca = "  ◄ você está aqui" if s == heroi.local else ""
-            print(f"    - {SALAS[s]['nome']}{marca}")
+            linhas.append(f"    - {SALAS[s]['nome']}{marca}")
+    return "\n".join(linhas)
 
 
 def examinar(heroi):
+    """Pergunta o que examinar e devolve o texto (ou None se o jogador voltar)."""
     detalhes = SALAS[heroi.local].get("detalhes", {})
     if not detalhes:
-        print("\nNão há nada de especial para examinar aqui.")
-        return
+        return "Não há nada de especial para examinar aqui."
+    tela(heroi)
     opcoes = [coisa.capitalize() for coisa in detalhes] + [VOLTAR]
     escolha = escolher("Examinar o quê?", opcoes, separar_antes=(VOLTAR,))
-    if escolha != VOLTAR:
-        print(f"\n{detalhes[escolha.lower()]}")
+    if escolha == VOLTAR:
+        return None
+    return detalhes[escolha.lower()]
 
 
 def mover(heroi, destino):
     heroi.local = destino
-    primeira_vez = destino not in heroi.visitados
-    if primeira_vez:
+    if destino not in heroi.visitados:
         heroi.visitados.append(destino)
-    mostrar_sala(heroi, completa=primeira_vez)
 
 
 def despertar(heroi):
+    limpar()
     titulo("PRÓLOGO")
     print(
         "Escuridão. Depois, frio.\n"
@@ -73,7 +87,7 @@ def explorar(heroi, salvar):
     """Laço principal de exploração. `salvar` é uma função que grava o jogo."""
     if heroi.local not in heroi.visitados:
         heroi.visitados.append(heroi.local)
-    mostrar_sala(heroi)
+    mensagem = None
 
     while True:
         sala = SALAS[heroi.local]
@@ -86,25 +100,21 @@ def explorar(heroi, salvar):
             if destino in heroi.visitados:
                 descricoes[rotulo] = SALAS[destino]["nome"]
 
-        opcoes = list(destinos) + [EXAMINAR, OLHAR, MAPA, FICHA, SALVAR, MENU]
-        print()
+        tela(heroi, mensagem)
+        mensagem = None
+        opcoes = list(destinos) + [EXAMINAR, MAPA, FICHA, SALVAR, MENU]
         escolha = escolher("O que você faz?", opcoes, descricoes, separar_antes=(EXAMINAR, MAPA))
 
         if escolha in destinos:
             mover(heroi, destinos[escolha])
         elif escolha == EXAMINAR:
-            examinar(heroi)
-        elif escolha == OLHAR:
-            mostrar_sala(heroi)
+            mensagem = examinar(heroi)
         elif escolha == MAPA:
-            mostrar_mapa(heroi)
+            mensagem = texto_mapa(heroi)
         elif escolha == FICHA:
-            print()
-            print(heroi.ficha())
+            mensagem = heroi.ficha()
         elif escolha == SALVAR:
-            arquivo = salvar(heroi)
-            print(f"\nJogo salvo em {arquivo.name}.")
+            mensagem = f"Jogo salvo em {salvar(heroi).name}."
         elif escolha == MENU:
-            arquivo = salvar(heroi)
-            print(f"\nJogo salvo em {arquivo.name}. Voltando ao menu...")
+            salvar(heroi)
             return

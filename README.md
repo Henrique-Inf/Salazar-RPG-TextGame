@@ -30,11 +30,10 @@ Sem ela, ou fora de um terminal de verdade, o jogo usa listas numeradas e contin
 
 ## Como explorar
 
-A cada passo você escolhe uma ação num menu:
+A tela é limpa a cada passo: no topo fica o seu personagem (nome, raça, classe e PV), depois a descrição da sala, o resultado da última ação e o menu. Você escolhe uma ação:
 
 - **Ir para o norte / sul / leste / oeste…**: as saídas da sala (e as escadas, com *Subir* e *Descer*). Salas que você já visitou mostram o nome ao lado.
 - **Examinar…**: abre uma lista com as coisas da sala que dá para olhar de perto
-- **Olhar ao redor**: descreve o lugar de novo
 - **Mapa**: lugares que você já visitou
 - **Ficha do personagem**
 - **Salvar jogo** / **Salvar e voltar ao menu**

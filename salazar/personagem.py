@@ -5,6 +5,7 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 
 from .dados import ATRIBUTOS, NOMES_ATRIBUTOS, RACAS, CLASSES
+from .mundo import SALA_INICIAL
 
 PASTA_SAVES = Path(__file__).resolve().parent.parent / "saves"
 
@@ -27,6 +28,8 @@ class Personagem:
     bonus_escolhidos: dict = field(default_factory=dict)  # ex.: +1 do Meio-Elfo
     nivel: int = 1
     pv_atual: int = None
+    local: str = SALA_INICIAL
+    visitados: list = field(default_factory=list)
 
     def __post_init__(self):
         if self.pv_atual is None:

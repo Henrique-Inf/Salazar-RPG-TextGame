@@ -4,30 +4,22 @@ Para jogar:  python main.py
 """
 
 from salazar.criacao import criar_personagem
+from salazar.exploracao import despertar, explorar
 from salazar.interface import titulo, escolher, pausar
 from salazar.personagem import Personagem, listar_saves
 
 
-def prologo(heroi):
-    titulo("PRÓLOGO")
-    print(
-        f"A chuva cai sobre a estrada de terra quando {heroi.nome} avista as luzes\n"
-        "de uma taverna à beira da floresta. Lá dentro, o calor da lareira e o\n"
-        "cheiro de ensopado contrastam com os olhares desconfiados dos aldeões.\n"
-        "\n"
-        "Um velho de capuz ergue os olhos da caneca e diz baixinho:\n"
-        f"— Você tem cara de quem procura problemas, {heroi.raca.lower()}.\n"
-        "  E por aqui... problemas não faltam."
-    )
-    print("\n[ A aventura continua na próxima versão! ]")
+def salvar(heroi):
+    return heroi.salvar()
 
 
 def novo_jogo():
     heroi = criar_personagem()
-    arquivo = heroi.salvar()
+    arquivo = salvar(heroi)
     print(f"\nJogo salvo em {arquivo.name}.")
     pausar()
-    prologo(heroi)
+    despertar(heroi)
+    explorar(heroi, salvar)
 
 
 def carregar_jogo():
@@ -41,7 +33,7 @@ def carregar_jogo():
     print()
     print(heroi.ficha())
     pausar()
-    prologo(heroi)
+    explorar(heroi, salvar)
 
 
 def main():

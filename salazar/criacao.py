@@ -31,35 +31,39 @@ def distribuir_valores(valores, classe):
 
 def compra_de_pontos():
     """Compra de pontos: todos começam em 8 e você gasta 27 pontos."""
+    print("\nTodos os atributos começam em 8. Você tem 27 pontos para gastar (máximo 15).")
     atributos = {a: 8 for a in ATRIBUTOS}
     while True:
         gastos = sum(CUSTO_PONTOS[v] for v in atributos.values())
-        print(f"\nPontos restantes: {PONTOS_TOTAIS - gastos}")
-        for i, a in enumerate(ATRIBUTOS, 1):
-            print(f"  {i}. {NOMES_ATRIBUTOS[a]:<13} {atributos[a]}")
-        print("  Digite o número e + ou - (ex.: 1+ ou 3-). Digite 'ok' para terminar.")
-        cmd = input("> ").strip().lower().replace(" ", "")
-        if cmd == "ok":
-            if gastos < PONTOS_TOTAIS and not confirmar("Ainda sobram pontos. Terminar mesmo assim?"):
+        restantes = PONTOS_TOTAIS - gastos
+        rotulos = {f"{NOMES_ATRIBUTOS[a]:<13} {atributos[a]:>2}": a for a in ATRIBUTOS}
+        opcoes = list(rotulos) + ["Concluir"]
+        escolha = escolher(f"Pontos restantes: {restantes}", opcoes, separar_antes=("Concluir",))
+
+        if escolha == "Concluir":
+            if restantes and not confirmar(f"Ainda sobram {restantes} pontos. Concluir mesmo assim?"):
                 continue
             return atributos
-        if len(cmd) < 2 or not cmd[:-1].isdigit() or cmd[-1] not in "+-":
-            print("Comando inválido.")
-            continue
-        indice = int(cmd[:-1]) - 1
-        if not 0 <= indice < len(ATRIBUTOS):
-            print("Atributo inválido.")
-            continue
-        a = ATRIBUTOS[indice]
-        novo = atributos[a] + (1 if cmd[-1] == "+" else -1)
-        if novo not in CUSTO_PONTOS:
-            print("Os valores vão de 8 a 15 antes dos bônus de raça.")
-            continue
-        custo_novo = gastos - CUSTO_PONTOS[atributos[a]] + CUSTO_PONTOS[novo]
-        if custo_novo > PONTOS_TOTAIS:
-            print("Pontos insuficientes.")
-            continue
-        atributos[a] = novo
+
+        a = rotulos[escolha]
+        valor = atributos[a]
+        acoes, descricoes = [], {}
+        if valor < 15:
+            custo = CUSTO_PONTOS[valor + 1] - CUSTO_PONTOS[valor]
+            acoes.append("Aumentar")
+            descricoes["Aumentar"] = f"custa {custo} ponto{'s' if custo > 1 else ''}"
+        if valor > 8:
+            acoes.append("Diminuir")
+        acoes.append("Voltar")
+        acao = escolher(f"{NOMES_ATRIBUTOS[a]}: {valor}", acoes, descricoes)
+
+        if acao == "Aumentar":
+            if gastos + CUSTO_PONTOS[valor + 1] - CUSTO_PONTOS[valor] > PONTOS_TOTAIS:
+                print("Pontos insuficientes.")
+            else:
+                atributos[a] = valor + 1
+        elif acao == "Diminuir":
+            atributos[a] = valor - 1
 
 
 def gerar_atributos(classe):

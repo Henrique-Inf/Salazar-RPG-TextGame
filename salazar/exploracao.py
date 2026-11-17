@@ -1,44 +1,21 @@
-"""Exploração: o jogador digita comandos para andar e examinar as coisas."""
-
-import unicodedata
+"""Exploração: o jogador escolhe ações num menu para andar e examinar as coisas."""
 
 from .mundo import SALAS
-from .interface import titulo
+from .interface import titulo, escolher
 
-DIRECOES = {
-    "n": "norte", "norte": "norte",
-    "s": "sul", "sul": "sul",
-    "l": "leste", "leste": "leste", "e": "leste",
-    "o": "oeste", "oeste": "oeste", "w": "oeste",
-    "ne": "nordeste", "nordeste": "nordeste",
-    "no": "noroeste", "noroeste": "noroeste",
-    "se": "sudeste", "sudeste": "sudeste",
-    "so": "sudoeste", "sudoeste": "sudoeste",
-    "sobe": "subir", "subir": "subir", "cima": "subir",
-    "desce": "descer", "descer": "descer", "baixo": "descer",
-}
-
-AJUDA = """
-Comandos:
-  norte, sul, leste, oeste    andar (ou só n, s, l, o)
-  nordeste, noroeste...       diagonais (ne, no, se, so)
-  subir, descer               usar escadas
-  olhar                       descrever o lugar de novo
-  examinar <coisa>            olhar algo de perto (ex.: examinar porta)
-  mapa                        lugares que você já visitou
-  ficha                       ver sua ficha de personagem
-  salvar                      salvar o jogo
-  ajuda                       mostrar esta lista
-  menu                        voltar ao menu principal
-""".rstrip()
-
-PALAVRAS_IGNORADAS = {"ir", "va", "vai", "para", "pra", "o", "a", "os", "as", "de", "do", "da", "no", "na"}
+VOLTAR = "Voltar"
+EXAMINAR = "Examinar…"
+OLHAR = "Olhar ao redor"
+MAPA = "Mapa"
+FICHA = "Ficha do personagem"
+SALVAR = "Salvar jogo"
+MENU = "Salvar e voltar ao menu"
 
 
-def normalizar(texto):
-    """Minúsculas e sem acentos, para aceitar 'examinar baús' e 'examinar baus'."""
-    texto = unicodedata.normalize("NFD", texto.lower().strip())
-    return "".join(c for c in texto if unicodedata.category(c) != "Mn")
+def rotulo_direcao(direcao):
+    if direcao in ("subir", "descer"):
+        return f"{direcao.capitalize()} a escada"
+    return f"Ir para o {direcao}"
 
 
 def mostrar_sala(heroi, completa=True):
@@ -47,44 +24,32 @@ def mostrar_sala(heroi, completa=True):
     print(f"== {sala['nome']} ==  ({sala['andar']})")
     if completa:
         print(sala["descricao"])
-    saidas = ", ".join(sala["saidas"])
-    print(f"Saídas: {saidas}")
 
 
 def mostrar_mapa(heroi):
     print("\nLugares que você já conhece:")
     for andar in ("Subterrâneo", "Térreo"):
-        salas = [SALAS[s] for s in heroi.visitados if SALAS[s]["andar"] == andar]
+        salas = [s for s in heroi.visitados if SALAS[s]["andar"] == andar]
         if not salas:
             continue
         print(f"  {andar}:")
         for s in salas:
-            marca = "  <- você está aqui" if s is SALAS[heroi.local] else ""
-            print(f"    - {s['nome']}{marca}")
+            marca = "  ◄ você está aqui" if s == heroi.local else ""
+            print(f"    - {SALAS[s]['nome']}{marca}")
 
 
-def examinar(heroi, alvo):
+def examinar(heroi):
     detalhes = SALAS[heroi.local].get("detalhes", {})
-    alvo = normalizar(alvo)
-    for chave, texto in detalhes.items():
-        chave_n = normalizar(chave)
-        # aceita singular/plural simples: "flor" acha "flores", "cama" acha "camas"
-        if alvo and (alvo == chave_n or chave_n.startswith(alvo) or alvo.startswith(chave_n)):
-            print(f"\n{texto}")
-            return
-    if alvo:
-        print("\nVocê não vê nada de especial nisso.")
-    else:
-        coisas = ", ".join(detalhes) or "nada em especial"
-        print(f"\nExaminar o quê? Aqui você vê: {coisas}.")
-
-
-def mover(heroi, direcao):
-    sala = SALAS[heroi.local]
-    destino = sala["saidas"].get(direcao)
-    if not destino:
-        print("\nNão dá para ir por aí.")
+    if not detalhes:
+        print("\nNão há nada de especial para examinar aqui.")
         return
+    opcoes = [coisa.capitalize() for coisa in detalhes] + [VOLTAR]
+    escolha = escolher("Examinar o quê?", opcoes, separar_antes=(VOLTAR,))
+    if escolha != VOLTAR:
+        print(f"\n{detalhes[escolha.lower()]}")
+
+
+def mover(heroi, destino):
     heroi.local = destino
     primeira_vez = destino not in heroi.visitados
     if primeira_vez:
@@ -102,7 +67,6 @@ def despertar(heroi):
         "lembrança de como chegou até aqui. Só o próprio nome, e a certeza de\n"
         "que não deveria estar onde está."
     )
-    print("\n(Digite 'ajuda' para ver os comandos.)")
 
 
 def explorar(heroi, salvar):
@@ -112,40 +76,35 @@ def explorar(heroi, salvar):
     mostrar_sala(heroi)
 
     while True:
-        try:
-            entrada = input("\n> ")
-        except EOFError:
-            return
-        palavras = [p for p in normalizar(entrada).split() if p]
-        if not palavras:
-            continue
+        sala = SALAS[heroi.local]
 
-        comando, resto = palavras[0], palavras[1:]
+        # Um item de menu para cada saída. Se você já conhece o destino, ele aparece ao lado.
+        destinos, descricoes = {}, {}
+        for direcao, destino in sala["saidas"].items():
+            rotulo = rotulo_direcao(direcao)
+            destinos[rotulo] = destino
+            if destino in heroi.visitados:
+                descricoes[rotulo] = SALAS[destino]["nome"]
 
-        if comando in ("ir", "andar", "va", "vai") and resto:
-            resto = [p for p in resto if p not in PALAVRAS_IGNORADAS] or resto
-            comando, resto = resto[0], resto[1:]
+        opcoes = list(destinos) + [EXAMINAR, OLHAR, MAPA, FICHA, SALVAR, MENU]
+        print()
+        escolha = escolher("O que você faz?", opcoes, descricoes, separar_antes=(EXAMINAR, MAPA))
 
-        if comando in DIRECOES:
-            mover(heroi, DIRECOES[comando])
-        elif comando in ("olhar", "ol", "olha", "look"):
+        if escolha in destinos:
+            mover(heroi, destinos[escolha])
+        elif escolha == EXAMINAR:
+            examinar(heroi)
+        elif escolha == OLHAR:
             mostrar_sala(heroi)
-        elif comando in ("examinar", "ex", "x", "ver", "investigar"):
-            alvo = " ".join(p for p in resto if p not in PALAVRAS_IGNORADAS)
-            examinar(heroi, alvo)
-        elif comando == "mapa":
+        elif escolha == MAPA:
             mostrar_mapa(heroi)
-        elif comando == "ficha":
+        elif escolha == FICHA:
             print()
             print(heroi.ficha())
-        elif comando == "salvar":
+        elif escolha == SALVAR:
             arquivo = salvar(heroi)
             print(f"\nJogo salvo em {arquivo.name}.")
-        elif comando in ("ajuda", "help", "?"):
-            print(AJUDA)
-        elif comando in ("menu", "sair"):
+        elif escolha == MENU:
             arquivo = salvar(heroi)
             print(f"\nJogo salvo em {arquivo.name}. Voltando ao menu...")
             return
-        else:
-            print("\nNão entendi. Digite 'ajuda' para ver os comandos.")

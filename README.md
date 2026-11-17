@@ -5,13 +5,17 @@ Você controla **Salazar**, um herói totalmente personalizável: escolha o nome
 
 ## Como jogar
 
-Precisa apenas do [Python 3.9+](https://www.python.org/downloads/) (nenhuma biblioteca extra).
+Precisa do [Python 3.9+](https://www.python.org/downloads/).
 
 ```bash
 git clone https://github.com/Henrique-Inf/Salazar-RPG-TextGame.git
 cd Salazar-RPG-TextGame
+pip install -r requirements.txt
 python main.py
 ```
+
+Os menus são navegados com **↑ ↓** e **Enter** (biblioteca [questionary](https://github.com/tmbo/questionary)).
+Sem ela, ou fora de um terminal de verdade, o jogo usa listas numeradas e continua funcionando.
 
 ## O que já existe
 
@@ -24,20 +28,16 @@ python main.py
 - Salvar e carregar o jogo (arquivos em `saves/`), incluindo onde você está
 - Exploração do **Convento da Nossa Senhora do Rosto Florido**: 21 salas em dois andares (subterrâneo e térreo)
 
-## Comandos de exploração
+## Como explorar
 
-| Comando | O que faz |
-|---|---|
-| `norte`, `sul`, `leste`, `oeste` (ou `n`, `s`, `l`, `o`) | andar |
-| `nordeste`, `noroeste`, `sudeste`, `sudoeste` (ou `ne`, `no`, `se`, `so`) | diagonais |
-| `subir`, `descer` | usar escadas |
-| `olhar` | descrever o lugar de novo |
-| `examinar <coisa>` | olhar algo de perto (ex.: `examinar porta`) |
-| `mapa` | lugares que você já visitou |
-| `ficha` | ver sua ficha |
-| `salvar` | salvar o jogo |
-| `ajuda` | lista de comandos |
-| `menu` | salvar e voltar ao menu |
+A cada passo você escolhe uma ação num menu:
+
+- **Ir para o norte / sul / leste / oeste…**: as saídas da sala (e as escadas, com *Subir* e *Descer*). Salas que você já visitou mostram o nome ao lado.
+- **Examinar…**: abre uma lista com as coisas da sala que dá para olhar de perto
+- **Olhar ao redor**: descreve o lugar de novo
+- **Mapa**: lugares que você já visitou
+- **Ficha do personagem**
+- **Salvar jogo** / **Salvar e voltar ao menu**
 
 ## O mapa
 
@@ -58,14 +58,15 @@ Depois de mexer no mapa, rode `python -m unittest` para conferir se toda saída 
 
 ```
 main.py                 # menu principal
+requirements.txt        # dependências (questionary)
 salazar/
   mundo.py              # o convento: salas, saídas e descrições
-  exploracao.py         # comandos de exploração e prólogo
+  exploracao.py         # menu de exploração e prólogo
   dados.py              # raças, classes e tabelas de regras
   dados_rolagem.py      # rolagem de dados
   personagem.py         # ficha do personagem, cálculos, salvar/carregar
   criacao.py            # criação de personagem passo a passo
-  interface.py          # menus e entradas no terminal
+  interface.py          # menus navegáveis (setas) e entradas no terminal
 tests/                  # testes automáticos (python -m unittest)
 docs/                   # planta do convento
 ```

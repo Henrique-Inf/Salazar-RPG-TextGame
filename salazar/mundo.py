@@ -123,8 +123,8 @@ SALAS = {
         "saidas": {"sul": "sub_antessala"},
         "detalhes": {
             "mesa": "Ferramentas de jardinagem: tesouras, pás, um regador de cobre. Estranho, aqui embaixo.",
-            "baus": "Trancados. Você vai precisar de algo para abri-los.",
-            "moveis": "Bancos de capela, um confessionário desmontado, armários sem portas.",
+            "baús": "Trancados. Você vai precisar de algo para abri-los.",
+            "móveis": "Bancos de capela, um confessionário desmontado, armários sem portas.",
         },
     },
     "sub_sala7": {
@@ -138,8 +138,8 @@ SALAS = {
         "saidas": {"oeste": "sub_antessala", "norte": "sub_passagem"},
         "detalhes": {
             "escrivaninha": "Um livro de registros aberto. A última página tem um nome riscado tantas vezes que rasgou o papel.",
-            "papeis": "Listas de nomes, datas, e uma palavra repetida na margem: 'florescer'.",
-            "armario": "Hábitos de freira, bem dobrados. E um molho de chaves pendurado num prego vazio. Só o prego.",
+            "papéis": "Listas de nomes, datas, e uma palavra repetida na margem: 'florescer'.",
+            "armário": "Hábitos de freira, bem dobrados. E um molho de chaves pendurado num prego vazio. Só o prego.",
         },
     },
     "sub_passagem": {
@@ -152,7 +152,7 @@ SALAS = {
         ),
         "saidas": {"sul": "sub_sala7", "leste": "sub_salao9"},
         "detalhes": {
-            "raizes": "Grossas como um braço. Quando você encosta, elas parecem mornas.",
+            "raízes": "Grossas como um braço. Quando você encosta, elas parecem mornas.",
             "flores": "Brancas, de pétalas finas. Viram-se devagar na sua direção. Ou foi impressão?",
         },
     },
@@ -183,7 +183,7 @@ SALAS = {
         "saidas": {"descer": "sub_salao9", "sul": "ter_torre5a"},
         "detalhes": {
             "pentagrama": "As linhas são precisas, feitas com paciência. O traço escuro é seco… e não é tinta.",
-            "petalas": "Frescas. Alguém as colocou aqui há pouco tempo.",
+            "pétalas": "Frescas. Alguém as colocou aqui há pouco tempo.",
         },
     },
     "ter_torre5a": {
@@ -216,7 +216,7 @@ SALAS = {
         "detalhes": {
             "altar": "Uma pedra lisa com um nicho vazio. Algo ficava aqui. Uma imagem, talvez.",
             "roseiras": "Espinhos longos e flores vermelhas demais. Elas cresceram por cima das pedras caídas.",
-            "ceu": "Nublado. Impossível dizer que horas são.",
+            "céu": "Nublado. Impossível dizer que horas são.",
         },
     },
     "ter_torre3a": {
@@ -265,7 +265,7 @@ SALAS = {
         ),
         "saidas": {"leste": "ter_sala2"},
         "detalhes": {
-            "movel": "A gaveta está emperrada. Algo se mexe lá dentro quando você sacode o móvel.",
+            "móvel": "A gaveta está emperrada. Algo se mexe lá dentro quando você sacode o móvel.",
         },
     },
     "ter_patio7": {
@@ -280,7 +280,7 @@ SALAS = {
         "detalhes": {
             "fonte": "No fundo da água brilham moedas. E, no centro, a estátua de uma mulher cujo rosto é todo coberto de flores esculpidas.",
             "flores": "Nenhuma delas murchou. Nem uma folha seca.",
-            "agua": "Seu reflexo olha de volta. Por um segundo, você não reconhece o próprio rosto.",
+            "água": "Seu reflexo olha de volta. Por um segundo, você não reconhece o próprio rosto.",
         },
     },
     "ter_salao6": {

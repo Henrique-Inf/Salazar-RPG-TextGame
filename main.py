@@ -5,7 +5,7 @@ Para jogar:  python main.py
 
 from salazar.criacao import criar_personagem
 from salazar.exploracao import despertar, explorar
-from salazar.interface import titulo, escolher, pausar
+from salazar.interface import titulo, escolher, pausar, aviso_biblioteca
 from salazar.personagem import Personagem, listar_saves
 
 
@@ -39,6 +39,7 @@ def carregar_jogo():
 def main():
     titulo("S A L A Z A R")
     print("Um RPG de texto no mundo de D&D 5e".center(46))
+    aviso_biblioteca()
     while True:
         opcao = escolher("Menu principal", ["Novo jogo", "Carregar jogo", "Sair"])
         if opcao == "Novo jogo":

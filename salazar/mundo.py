@@ -5,7 +5,16 @@ Cada sala tem:
   andar      – "Subterrâneo" ou "Térreo"
   descricao  – o texto que aparece ao entrar pela primeira vez (ou com o comando "olhar")
   saidas     – direção → id da sala de destino
-  detalhes   – coisas que podem ser examinadas com "examinar <coisa>"
+  detalhes   – coisas que podem ser examinadas. O valor é um texto, ou um dict com
+               "texto" e, opcionalmente, "depois": [{"flag": ..., "texto": ...}] para
+               mudar o texto quando um evento (flag) já aconteceu
+  itens      – itens que dá para pegar aqui. Texto (id do item) ou {"id": ..., "flag": ...}
+               quando o item só aparece depois de um evento
+  kit_flag   – quando esse evento acontece, o equipamento inicial da classe aparece aqui
+  usos       – o que acontece ao usar um item aqui: {id_do_item: {"texto": ..., "flag": ...,
+               "ja": texto se já foi feito}}. Sem "flag", é só uma tentativa que não muda nada
+  saidas_condicionais – saídas que só existem depois de um evento:
+               {direção: {"flag": ..., "destino": ...}}
 
 Para mudar um texto do jogo, basta editar aqui. A planta original está em docs/mapa-convento.png.
 O norte é o topo da folha do mapa.
@@ -121,9 +130,26 @@ SALAS = {
             "poeira. No centro, uma mesa larga ainda tem coisas em cima."
         ),
         "saidas": {"sul": "sub_antessala"},
+        "itens": ["tesoura", {"id": "chave_enferrujada", "flag": "baus_abertos"}],
+        "kit_flag": "baus_abertos",
+        "usos": {
+            "chaves": {
+                "texto": (
+                    "A terceira chave do molho gira com um estalo. Os baús se abrem\n"
+                    "rangendo. Dentro, entre trapos e poeira, estão as suas coisas: o\n"
+                    "seu equipamento, tudo ali, como se esperasse por você. Ao lado,\n"
+                    "uma chave pequena e enferrujada."
+                ),
+                "flag": "baus_abertos",
+                "ja": "Os baús já estão abertos.",
+            },
+        },
         "detalhes": {
             "mesa": "Ferramentas de jardinagem: tesouras, pás, um regador de cobre. Estranho, aqui embaixo.",
-            "baús": "Trancados. Você vai precisar de algo para abri-los.",
+            "baús": {
+                "texto": "Dois baús grandes, reforçados com ferro e trancados. Você vai precisar de uma chave.",
+                "depois": [{"flag": "baus_abertos", "texto": "Os baús estão abertos e revirados. Só restam trapos e poeira."}],
+            },
             "móveis": "Bancos de capela, um confessionário desmontado, armários sem portas.",
         },
     },
@@ -136,9 +162,15 @@ SALAS = {
             "pelo chão. Ao norte, uma passagem estreita."
         ),
         "saidas": {"oeste": "sub_antessala", "norte": "sub_passagem"},
+        "itens": ["livro_registros"],
         "detalhes": {
             "escrivaninha": "Um livro de registros aberto. A última página tem um nome riscado tantas vezes que rasgou o papel.",
-            "papéis": "Listas de nomes, datas, e uma palavra repetida na margem: 'florescer'.",
+            "papéis": (
+                "Listas de nomes, datas, e uma palavra repetida na margem: 'florescer'.\n"
+                "Um bilhete preso por um alfinete diz: 'Guardei o molho de chaves na\n"
+                "torre oeste, dentro do móvel de madeira. Que nenhuma noviça o\n"
+                "encontre. — Ir. Margarida'."
+            ),
             "armário": "Hábitos de freira, bem dobrados. E um molho de chaves pendurado num prego vazio. Só o prego.",
         },
     },
@@ -181,6 +213,7 @@ SALAS = {
             "nas cinco pontas. Uma passagem leva para o sul."
         ),
         "saidas": {"descer": "sub_salao9", "sul": "ter_torre5a"},
+        "itens": ["petala"],
         "detalhes": {
             "pentagrama": "As linhas são precisas, feitas com paciência. O traço escuro é seco… e não é tinta.",
             "pétalas": "Frescas. Alguém as colocou aqui há pouco tempo.",
@@ -251,6 +284,7 @@ SALAS = {
             "e ganchos na parede, como uma sala de espera ou um vestiário."
         ),
         "saidas": {"norte": "ter_torre3a", "oeste": "ter_torre1", "leste": "ter_patio4", "sul": "ter_patio7"},
+        "itens": ["veu"],
         "detalhes": {
             "ganchos": "Um véu de freira continua pendurado num deles.",
             "banco": "Gasto pelo uso. Muita gente esperou aqui.",
@@ -264,8 +298,23 @@ SALAS = {
             "gaveta. A escada em caracol sobe junto à parede."
         ),
         "saidas": {"leste": "ter_sala2"},
+        "itens": [{"id": "chaves", "flag": "gaveta_aberta"}],
+        "usos": {
+            "tesoura": {
+                "texto": (
+                    "Você enfia a lâmina na fresta e força até a madeira estalar. A\n"
+                    "gaveta cede. Dentro, um molho de chaves e um rato assustado, que\n"
+                    "foge pelo chão e some num buraco."
+                ),
+                "flag": "gaveta_aberta",
+                "ja": "A gaveta já está aberta.",
+            },
+        },
         "detalhes": {
-            "móvel": "A gaveta está emperrada. Algo se mexe lá dentro quando você sacode o móvel.",
+            "móvel": {
+                "texto": "A gaveta está emperrada. Algo se mexe lá dentro quando você sacode o móvel.",
+                "depois": [{"flag": "gaveta_aberta", "texto": "A gaveta está aberta, vazia, com a madeira rachada na quina."}],
+            },
         },
     },
     "ter_patio7": {
@@ -277,6 +326,7 @@ SALAS = {
             "todas as cores, como se fosse primavera só aqui."
         ),
         "saidas": {"norte": "ter_sala2", "leste": "ter_salao6", "sudoeste": "ter_torre9"},
+        "itens": ["moedas"],
         "detalhes": {
             "fonte": "No fundo da água brilham moedas. E, no centro, a estátua de uma mulher cujo rosto é todo coberto de flores esculpidas.",
             "flores": "Nenhuma delas murchou. Nem uma folha seca.",
@@ -318,8 +368,28 @@ SALAS = {
             "com uma barra de ferro, parece dar para fora do convento."
         ),
         "saidas": {"nordeste": "ter_patio7", "leste": "ter_corredor8"},
+        "saidas_condicionais": {"fora": {"flag": "porta_aberta", "destino": "ext_estrada"}},
+        "usos": {
+            "chaves": {
+                "texto": "Você tenta uma chave atrás da outra, mas nenhuma serve no cadeado. Ele é velho demais, de um modelo diferente.",
+                "flag": None,
+            },
+            "chave_enferrujada": {
+                "texto": (
+                    "A chave pequena entra no cadeado com dificuldade. Você força, a\n"
+                    "ferrugem estala e o mecanismo cede. A barra de ferro cai no chão\n"
+                    "com um estrondo que ecoa pelo convento inteiro. A porta se abre\n"
+                    "para a névoa."
+                ),
+                "flag": "porta_aberta",
+                "ja": "O cadeado já está aberto.",
+            },
+        },
         "detalhes": {
-            "porta": "A barra de ferro está presa por um cadeado enferrujado. Seria a saída?",
+            "porta": {
+                "texto": "A barra de ferro está presa por um cadeado enferrujado. Seria a saída?",
+                "depois": [{"flag": "porta_aberta", "texto": "A porta está escancarada. Do outro lado, só névoa e silêncio."}],
+            },
         },
     },
     "ter_torre10": {
@@ -334,4 +404,41 @@ SALAS = {
             "pegadas": "Pés descalços, pequenos. Param no meio da sala.",
         },
     },
+    # ------------------------------------------------------------------
+    # EXTERIOR (por enquanto, só um gostinho do que vem depois)
+    # ------------------------------------------------------------------
+    "ext_estrada": {
+        "nome": "Estrada na névoa",
+        "andar": "Exterior",
+        "descricao": (
+            "O ar frio da noite bate no seu rosto. Uma estrada de terra desce\n"
+            "serpenteando pela floresta e desaparece na névoa. Atrás de você,\n"
+            "o convento se ergue em silêncio, e é impossível não sentir que ele\n"
+            "te observa. Lá embaixo, bem longe, tremula uma luz.\n"
+            "\n"
+            "[ Fim desta versão do jogo. A aventura continua em breve! ]"
+        ),
+        "saidas": {"dentro": "ter_torre9"},
+        "detalhes": {
+            "luz": "Pequena e distante. Uma vila? Uma fogueira? Só há um jeito de descobrir.",
+            "convento": "Daqui, as torres parecem dedos de pedra tentando alcançar o céu.",
+        },
+    },
 }
+
+
+def saidas_disponiveis(sala, flags):
+    """Saídas normais da sala mais as que já foram liberadas por algum evento."""
+    saidas = dict(sala["saidas"])
+    for direcao, regra in sala.get("saidas_condicionais", {}).items():
+        if regra["flag"] in flags:
+            saidas[direcao] = regra["destino"]
+    return saidas
+
+
+def todas_as_saidas(sala):
+    """Todas as saídas possíveis, liberadas ou não (usado nos testes)."""
+    saidas = dict(sala["saidas"])
+    for direcao, regra in sala.get("saidas_condicionais", {}).items():
+        saidas[direcao] = regra["destino"]
+    return saidas

@@ -30,6 +30,9 @@ class Personagem:
     pv_atual: int = None
     local: str = SALA_INICIAL
     visitados: list = field(default_factory=list)
+    inventario: list = field(default_factory=list)  # ids dos itens que você carrega
+    pegos: list = field(default_factory=list)       # itens já pegos do chão (não reaparecem)
+    flags: list = field(default_factory=list)       # eventos que já aconteceram
 
     def __post_init__(self):
         if self.pv_atual is None:
@@ -110,7 +113,7 @@ class Personagem:
             "  (* = proficiente)",
             "-" * 46,
             "  Traços: " + ", ".join(RACAS[self.raca]["tracos"]),
-            "  Equipamento: " + ", ".join(CLASSES[self.classe]["equipamento"]),
+            "  Equipamento inicial: " + ", ".join(CLASSES[self.classe]["equipamento"]),
             "=" * 46,
         ]
         return "\n".join(linhas)

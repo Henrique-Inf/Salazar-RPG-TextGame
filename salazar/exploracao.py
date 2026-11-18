@@ -4,12 +4,17 @@ A tela é redesenhada a cada passo: cabeçalho com o estado do herói, a descri�
 da sala, o resultado da última ação (se houve) e o menu.
 """
 
-from .mundo import SALAS
+from .mundo import SALAS, saidas_disponiveis
 from .interface import limpar, titulo, escolher
+from .inventario import itens_no_chao, nome_item, obter_item, pegar, usar, texto_detalhe
 
 LARGURA = 46
 VOLTAR = "Voltar"
 EXAMINAR = "Examinar…"
+PEGAR = "Pegar…"
+USAR = "Usar item…"
+INVENTARIO = "Inventário"
+PEGAR_TUDO = "Pegar tudo"
 MAPA = "Mapa"
 FICHA = "Ficha do personagem"
 SALVAR = "Salvar jogo"
@@ -19,6 +24,10 @@ MENU = "Salvar e voltar ao menu"
 def rotulo_direcao(direcao):
     if direcao in ("subir", "descer"):
         return f"{direcao.capitalize()} a escada"
+    if direcao == "fora":
+        return "Sair do convento"
+    if direcao == "dentro":
+        return "Voltar para dentro do convento"
     return f"Ir para o {direcao}"
 
 
@@ -40,7 +49,7 @@ def tela(heroi, mensagem=None):
 
 def texto_mapa(heroi):
     linhas = ["Lugares que você já conhece:"]
-    for andar in ("Subterrâneo", "Térreo"):
+    for andar in ("Subterrâneo", "Térreo", "Exterior"):
         salas = [s for s in heroi.visitados if SALAS[s]["andar"] == andar]
         if not salas:
             continue
@@ -61,7 +70,42 @@ def examinar(heroi):
     escolha = escolher("Examinar o quê?", opcoes, separar_antes=(VOLTAR,))
     if escolha == VOLTAR:
         return None
-    return detalhes[escolha.lower()]
+    return texto_detalhe(heroi, detalhes[escolha.lower()])
+
+
+def menu_pegar(heroi, chao):
+    """Escolhe o que pegar do chão. Devolve a mensagem (ou None se o jogador voltar)."""
+    tela(heroi)
+    nomes = {nome_item(heroi, i): i for i in chao}
+    opcoes = list(nomes) + ([PEGAR_TUDO] if len(nomes) > 1 else []) + [VOLTAR]
+    escolha = escolher("Pegar o quê?", opcoes, separar_antes=(VOLTAR,))
+    if escolha == VOLTAR:
+        return None
+    ids = list(nomes.values()) if escolha == PEGAR_TUDO else [nomes[escolha]]
+    pegos = [pegar(heroi, i) for i in ids]
+    return "Você pegou: " + ", ".join(pegos) + "."
+
+
+def menu_inventario(heroi):
+    """Mostra os itens que você carrega; escolher um mostra a descrição."""
+    if not heroi.inventario:
+        return "Você não está carregando nada."
+    tela(heroi)
+    nomes = {nome_item(heroi, i): i for i in heroi.inventario}
+    escolha = escolher(f"Inventário ({len(nomes)} itens)", list(nomes) + [VOLTAR], separar_antes=(VOLTAR,))
+    if escolha == VOLTAR:
+        return None
+    return f"{escolha}\n{obter_item(heroi, nomes[escolha])['descricao']}"
+
+
+def menu_usar(heroi):
+    """Escolhe um item do inventário para usar neste lugar."""
+    tela(heroi)
+    nomes = {nome_item(heroi, i): i for i in heroi.inventario}
+    escolha = escolher("Usar qual item?", list(nomes) + [VOLTAR], separar_antes=(VOLTAR,))
+    if escolha == VOLTAR:
+        return None
+    return usar(heroi, nomes[escolha])
 
 
 def mover(heroi, destino):
@@ -94,7 +138,7 @@ def explorar(heroi, salvar):
 
         # Um item de menu para cada saída. Se você já conhece o destino, ele aparece ao lado.
         destinos, descricoes = {}, {}
-        for direcao, destino in sala["saidas"].items():
+        for direcao, destino in saidas_disponiveis(sala, heroi.flags).items():
             rotulo = rotulo_direcao(direcao)
             destinos[rotulo] = destino
             if destino in heroi.visitados:
@@ -102,13 +146,25 @@ def explorar(heroi, salvar):
 
         tela(heroi, mensagem)
         mensagem = None
-        opcoes = list(destinos) + [EXAMINAR, MAPA, FICHA, SALVAR, MENU]
-        escolha = escolher("O que você faz?", opcoes, descricoes, separar_antes=(EXAMINAR, MAPA))
+        chao = itens_no_chao(heroi)
+        opcoes = list(destinos) + [EXAMINAR]
+        if chao:
+            opcoes.append(PEGAR)
+        if heroi.inventario:
+            opcoes.append(USAR)
+        opcoes += [INVENTARIO, MAPA, FICHA, SALVAR, MENU]
+        escolha = escolher("O que você faz?", opcoes, descricoes, separar_antes=(EXAMINAR, INVENTARIO))
 
         if escolha in destinos:
             mover(heroi, destinos[escolha])
         elif escolha == EXAMINAR:
             mensagem = examinar(heroi)
+        elif escolha == PEGAR:
+            mensagem = menu_pegar(heroi, chao)
+        elif escolha == USAR:
+            mensagem = menu_usar(heroi)
+        elif escolha == INVENTARIO:
+            mensagem = menu_inventario(heroi)
         elif escolha == MAPA:
             mensagem = texto_mapa(heroi)
         elif escolha == FICHA:

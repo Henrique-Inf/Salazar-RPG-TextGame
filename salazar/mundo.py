@@ -20,6 +20,8 @@ Para mudar um texto do jogo, basta editar aqui. A planta original está em docs/
 O norte é o topo da folha do mapa.
 """
 
+from .laboratorio import SALAS_LAB
+
 SALA_INICIAL = "sub_cela"
 
 SALAS = {
@@ -442,3 +444,29 @@ def todas_as_saidas(sala):
     for direcao, regra in sala.get("saidas_condicionais", {}).items():
         saidas[direcao] = regra["destino"]
     return saidas
+
+
+def obter_sala(sala_id):
+    """Procura a sala no convento e, se não achar, na sala de testes."""
+    return SALAS[sala_id] if sala_id in SALAS else SALAS_LAB[sala_id]
+
+
+def todas_as_flags():
+    """Todos os eventos (flags) que o jogo conhece, em ordem alfabética."""
+    flags = set()
+    for sala in list(SALAS.values()) + list(SALAS_LAB.values()):
+        for uso in sala.get("usos", {}).values():
+            if uso.get("flag"):
+                flags.add(uso["flag"])
+        for entrada in sala.get("itens", []):
+            if isinstance(entrada, dict) and entrada.get("flag"):
+                flags.add(entrada["flag"])
+        if sala.get("kit_flag"):
+            flags.add(sala["kit_flag"])
+        for regra in sala.get("saidas_condicionais", {}).values():
+            flags.add(regra["flag"])
+        for detalhe in sala.get("detalhes", {}).values():
+            if isinstance(detalhe, dict):
+                for alternativa in detalhe.get("depois", []):
+                    flags.add(alternativa["flag"])
+    return sorted(flags)

@@ -4,7 +4,7 @@ A tela é redesenhada a cada passo: cabeçalho com o estado do herói, a descri�
 da sala, o resultado da última ação (se houve) e o menu.
 """
 
-from .mundo import SALAS, saidas_disponiveis
+from .mundo import obter_sala, saidas_disponiveis
 from .interface import limpar, titulo, escolher
 from .inventario import itens_no_chao, nome_item, obter_item, pegar, usar, texto_detalhe
 
@@ -19,6 +19,8 @@ MAPA = "Mapa"
 FICHA = "Ficha do personagem"
 SALVAR = "Salvar jogo"
 MENU = "Salvar e voltar ao menu"
+FERRAMENTAS = "Ferramentas de teste…"
+SAIR_TESTE = "Sair da sala de testes"
 
 
 def rotulo_direcao(direcao):
@@ -34,8 +36,10 @@ def rotulo_direcao(direcao):
 def tela(heroi, mensagem=None):
     """Limpa a tela e desenha o cabeçalho, a sala e a mensagem da última ação."""
     limpar()
-    sala = SALAS[heroi.local]
-    print(f"{heroi.nome} · {heroi.raca} {heroi.classe} · PV {heroi.pv_atual}/{heroi.pv_maximo}")
+    sala = obter_sala(heroi.local)
+    # `modo_teste` é um atributo solto (não vai para o save), ligado só na sala de testes
+    marca = "   [MODO DE TESTE]" if getattr(heroi, "modo_teste", False) else ""
+    print(f"{heroi.nome} · {heroi.raca} {heroi.classe} · PV {heroi.pv_atual}/{heroi.pv_maximo}{marca}")
     print("─" * LARGURA)
     print(f"{sala['nome']}  ({sala['andar']})")
     print()
@@ -49,20 +53,20 @@ def tela(heroi, mensagem=None):
 
 def texto_mapa(heroi):
     linhas = ["Lugares que você já conhece:"]
-    for andar in ("Subterrâneo", "Térreo", "Exterior"):
-        salas = [s for s in heroi.visitados if SALAS[s]["andar"] == andar]
+    for andar in ("Laboratório", "Subterrâneo", "Térreo", "Exterior"):
+        salas = [s for s in heroi.visitados if obter_sala(s)["andar"] == andar]
         if not salas:
             continue
         linhas.append(f"  {andar}:")
         for s in salas:
             marca = "  ◄ você está aqui" if s == heroi.local else ""
-            linhas.append(f"    - {SALAS[s]['nome']}{marca}")
+            linhas.append(f"    - {obter_sala(s)['nome']}{marca}")
     return "\n".join(linhas)
 
 
 def examinar(heroi):
     """Pergunta o que examinar e devolve o texto (ou None se o jogador voltar)."""
-    detalhes = SALAS[heroi.local].get("detalhes", {})
+    detalhes = obter_sala(heroi.local).get("detalhes", {})
     if not detalhes:
         return "Não há nada de especial para examinar aqui."
     tela(heroi)
@@ -127,14 +131,20 @@ def despertar(heroi):
     )
 
 
-def explorar(heroi, salvar):
-    """Laço principal de exploração. `salvar` é uma função que grava o jogo."""
+def explorar(heroi, salvar, ferramentas=None):
+    """Laço principal de exploração. `salvar` é uma função que grava o jogo.
+
+    Se `ferramentas` for dada (uma função que abre o menu de ferramentas e devolve
+    uma mensagem), o jogo roda em modo de teste: nada é salvo e o menu ganha
+    as ferramentas de teste no lugar das opções de salvar.
+    """
+    teste = ferramentas is not None
     if heroi.local not in heroi.visitados:
         heroi.visitados.append(heroi.local)
     mensagem = None
 
     while True:
-        sala = SALAS[heroi.local]
+        sala = obter_sala(heroi.local)
 
         # Um item de menu para cada saída. Se você já conhece o destino, ele aparece ao lado.
         destinos, descricoes = {}, {}
@@ -142,7 +152,7 @@ def explorar(heroi, salvar):
             rotulo = rotulo_direcao(direcao)
             destinos[rotulo] = destino
             if destino in heroi.visitados:
-                descricoes[rotulo] = SALAS[destino]["nome"]
+                descricoes[rotulo] = obter_sala(destino)["nome"]
 
         tela(heroi, mensagem)
         mensagem = None
@@ -152,7 +162,10 @@ def explorar(heroi, salvar):
             opcoes.append(PEGAR)
         if heroi.inventario:
             opcoes.append(USAR)
-        opcoes += [INVENTARIO, MAPA, FICHA, SALVAR, MENU]
+        if teste:
+            opcoes += [INVENTARIO, MAPA, FICHA, FERRAMENTAS, SAIR_TESTE]
+        else:
+            opcoes += [INVENTARIO, MAPA, FICHA, SALVAR, MENU]
         escolha = escolher("O que você faz?", opcoes, descricoes, separar_antes=(EXAMINAR, INVENTARIO))
 
         if escolha in destinos:
@@ -169,6 +182,10 @@ def explorar(heroi, salvar):
             mensagem = texto_mapa(heroi)
         elif escolha == FICHA:
             mensagem = heroi.ficha()
+        elif escolha == FERRAMENTAS:
+            mensagem = ferramentas(heroi)
+        elif escolha == SAIR_TESTE:
+            return
         elif escolha == SALVAR:
             mensagem = f"Jogo salvo em {salvar(heroi).name}."
         elif escolha == MENU:

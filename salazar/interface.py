@@ -78,7 +78,7 @@ def escolher(texto, opcoes, descricoes=None, separar_antes=()):
     if menus_navegaveis():
         escolhas = []
         for opcao in opcoes:
-            if opcao in separar_antes:
+            if opcao in separar_antes and escolhas:
                 escolhas.append(Separator("  ─────────"))
             rotulo = f"{opcao} — {descricoes[opcao]}" if opcao in descricoes else opcao
             escolhas.append(Choice(title=rotulo, value=opcao))

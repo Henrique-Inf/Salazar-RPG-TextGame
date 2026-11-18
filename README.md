@@ -42,6 +42,21 @@ A tela é limpa a cada passo: no topo fica o seu personagem (nome, raça, classe
 - **Ficha do personagem**
 - **Salvar jogo** / **Salvar e voltar ao menu**
 
+## Sala de testes
+
+No menu inicial há a opção **Sala de testes**: um lugar à parte para experimentar as novidades antes de elas entrarem no jogo de verdade. Nada ali é salvo, e os seus jogos salvos nunca são tocados.
+
+Você escolhe uma raça e uma classe e recebe um personagem pronto, numa sala branca com todos os itens do jogo espalhados pelo chão. O menu **Ferramentas de teste…** permite:
+
+- **Dar item…**: pegar qualquer item do jogo, ou todos de uma vez
+- **Esvaziar inventário** e **Curar totalmente**
+- **Mudar nível…**: do 1 ao 20
+- **Eventos…**: ligar e desligar os eventos do jogo (por exemplo, "a gaveta está aberta"), para testar qualquer parte de um quebra-cabeça sem refazer o caminho
+- **Ir para…**: ir direto para qualquer sala do convento, mantendo o modo de teste
+- **Reiniciar tudo**
+
+Para testar uma novidade nova (um combate, um personagem para conversar...), escreva uma função em `salazar/ferramentas_teste.py` e acrescente-a ao dicionário `FERRAMENTAS`: ela aparece sozinha no menu. A sala de testes usa o mesmo formato das salas do convento, então o que funciona lá funciona no jogo.
+
 ## O mapa
 
 ![Planta do convento](docs/mapa-convento.png)
@@ -73,6 +88,8 @@ requirements.txt        # dependências (questionary)
 salazar/
   mundo.py              # o convento: salas, saídas, itens e o que cada item faz
   itens.py              # nome e descrição de cada item
+  laboratorio.py        # a sala de testes (usa o mesmo formato das salas do convento)
+  ferramentas_teste.py  # menu de ferramentas e personagem da sala de testes
   inventario.py         # pegar, usar e examinar itens
   exploracao.py         # menu de exploração e prólogo
   dados.py              # raças, classes e tabelas de regras
